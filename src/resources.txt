@@ -1,0 +1,8 @@
+module.vpc.aws_instance.example_instance
+module.vpc.aws_internet_gateway.example_gateway
+module.vpc.aws_route_table.example_route_table
+module.vpc.aws_route_table_association.example_association
+module.vpc.aws_security_group.ingress
+module.vpc.aws_subnet.example_public_subnet
+module.vpc.aws_volume_attachment.example_volume_attachment
+module.vpc.aws_vpc.example_vpc

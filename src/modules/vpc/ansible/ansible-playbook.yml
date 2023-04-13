@@ -1,0 +1,49 @@
+---
+- name: Install Docker and Zabbix agent
+  become: true
+  gather_facts: true
+
+  tasks:
+    - name: Update apt cache
+      apt:
+        update_cache: yes
+      become: true
+
+    - name: Install required packages
+      apt:
+        name:
+          - apt-transport-https
+          - ca-certificates
+          - curl
+          - gnupg-agent
+          - software-properties-common
+        state: present
+
+    - name: Add Docker GPG key
+      apt_key:
+        url: https://download.docker.com/linux/ubuntu/gpg
+        state: present
+
+    - name: Add Docker repository
+      apt_repository:
+        repo: deb [arch=amd64] https://download.docker.com/linux/ubuntu {{ ansible_distribution_release }} stable
+        state: present
+        filename: docker-ce
+
+    - name: Install Docker engine
+      apt:
+        name: docker-ce
+        state: present
+
+    - name: Add user to docker group
+      user:
+        name: "{{ ansible_user }}"
+        append: yes
+        groups: docker
+      notify: restart docker
+
+  handlers:
+    - name: restart docker
+      systemd:
+        name: docker.service
+        state: restarted

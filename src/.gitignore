@@ -1,0 +1,21 @@
+# Exclude .terraform directory
+.terraform/
+
+# Exclude state files and backups
+*.tfstate
+*.tfstate.backup
+.terraform.lock.hcl
+*.dot
+
+# Exclude any provider-specific files
+*.tfvars
+*.tfplan
+
+# Exclude temporary files and logs
+*.log
+*.out
+
+*.py
+
+*.pem
+
