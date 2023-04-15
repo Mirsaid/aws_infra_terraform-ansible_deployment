@@ -1,6 +1,7 @@
 ---
 - name: Install Docker and Zabbix agent
   become: true
+  hosts: all
   gather_facts: true
 
   tasks:

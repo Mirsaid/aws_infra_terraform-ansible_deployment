@@ -21,7 +21,7 @@ variable "key_name" {
   default = "dev-srv-key"
 }
 variable "private_key_path" {
-    default = "~/.ssh/dev-srv-key.pem"
+    default = "modules/vpc/ansible/dev-srv-key.pem"
 }
 
 variable "ssh_user"{

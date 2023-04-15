@@ -172,8 +172,9 @@ resource "aws_instance" "example_instance" {
   }
 
   provisioner "local-exec" {
-    command = "ansible-playbook -i '${self.public_ip},' --private-key ${var.private_key_path} /ansible/ansible-playbook.yml"
-  }
+
+	command = "sleep 90; ANSIBLE_HOST_KEY_CHECKING=False ansible-playbook -u ubuntu -i ${self.public_ip} --private-key ${var.private_key_path} modules/vpc/ansible/ansible-playbook.yml"
+}
 
 }
 
