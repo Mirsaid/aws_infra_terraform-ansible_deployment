@@ -38,7 +38,7 @@
 
     - name: Add user to docker group
       user:
-        name: "{{ ansible_user }}"
+        name: ubuntu
         append: yes
         groups: docker
       notify: restart docker

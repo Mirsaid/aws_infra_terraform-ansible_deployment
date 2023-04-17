@@ -1,12 +1,12 @@
 variable "vpc_cidr" {
-    description = "CIDR block for the VPC"
-    default = "10.0.0.0/16"
-    type=string
+  description = "CIDR block for the VPC"
+  default     = "10.0.0.0/16"
+  type        = string
 }
 
-variable "public_subnet_cidr"{
-    description = "CIDR block for the public subnet"
-    default = "10.0.1.0/24"
+variable "public_subnet_cidr" {
+  description = "CIDR block for the public subnet"
+  default     = "10.0.1.0/24"
 
 }
 
@@ -21,9 +21,9 @@ variable "key_name" {
   default = "dev-srv-key"
 }
 variable "private_key_path" {
-    default = "modules/vpc/ansible/dev-srv-key.pem"
+  default = "modules/vpc/ansible/dev-srv-key.pem"
 }
 
-variable "ssh_user"{
-    default = "ubuntu"
+variable "ssh_user" {
+  default = "ubuntu"
 }

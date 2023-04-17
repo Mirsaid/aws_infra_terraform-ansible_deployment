@@ -63,33 +63,6 @@ resource "aws_route_table_association" "example_association" {
   route_table_id = aws_route_table.example_route_table.id
 }
 
-# resource "aws_network_interface" "example_network_interface" {
-#   subnet_id       = aws_subnet.example_public_subnet.id
-#   private_ips     = ["10.0.1.50"]
-#   security_groups = [aws_security_group.ingress.id]
-
-#   attachment {
-#     device_index = 1
-#     instance  = aws_instance.example_instance.id
-#   }
-
-#   #depends_on=[aws_subnet.example_public_subnet]
-
-#   tags = {
-#     Name = "example_network_interface"
-#   }
- 
-  
-# }
-
-# resource "aws_eip" "one" {
-#   vpc                       = true
-#   network_interface         = aws_network_interface.example_network_interface.id
-#   associate_with_private_ip = "10.0.1.50"
-#   depends_on                = [aws_internet_gateway.example_gateway]
- 
-# }
-
 resource "aws_instance" "example_instance" {
   ami                    = var.ami_id
   instance_type          = var.instance_type
@@ -97,84 +70,68 @@ resource "aws_instance" "example_instance" {
   vpc_security_group_ids = [aws_security_group.ingress.id]
   availability_zone      = "eu-central-1a"
 
-  subnet_id                   = aws_subnet.example_public_subnet.id
-   
-  # network_interface {
-  #   network_interface_id = aws_network_interface.example_network_interface.id
-  #   device_index         = 1
-  # }
-  associate_public_ip_address = true   
+  subnet_id = aws_subnet.example_public_subnet.id
+
+  associate_public_ip_address = true
 
   # Add a root EBS volume
   root_block_device {
     volume_size = 15
-      }
+  }
 
   tags = {
     Name = "example_instance_for_project"
   }
 
-#   user_data = <<-EOF
-#  #!/bin/bash
-#     apt-get update -y
-
-#     # Mount EBS volume to instance and create file system
-#     mkfs -t ext4 /dev/xvdf
-#     mkdir /mnt/ebs_data
-#     mount /dev/xvdf /mnt/ebs_data
-
-#     # Install Java 8
-#     apt-get install -y openjdk-8-jdk
-
-#     # Run Python script
-#     python /path/to/script.py
-
-#   EOF
-  
-  # provisioner "remote-exec" {
-  #   inline = [
-    
-  #   "sudo apt-get update -y",
-  #     "sudo apt-get install -y openjdk-8-jdk",
-  #     "export EBS_VOLUME=$(sudo lsblk -o NAME,MOUNTPOINT | tail -n1 | awk '{print $1}') ",
-  #     "sudo mkfs -t ext4 $EBS_VOLUME",
-
-  #     "sudo mkdir /mnt/ebs_data",
-  #     "sudo mount $EBS_VOLUME /mnt/ebs_data",
-  #     "cd /mnt/ebs_data",
-  #     "python3 /modules/vpc/script.py "
-
-  #   ]
-
-  #   connection {
-  #     type        = "ssh"
-  #     user        = "ubuntu"
-  #     private_key = file("/modules/vpc/dev-srv-key.pem")
-  #     host        = self.public_ip
-  #   }
-  # }
-
+  #############################################################################
+  # This is the 'remote exec' method.  
+  # Ansible runs on the target host.
+  #############################################################################
 
   provisioner "remote-exec" {
     inline = [
-              "sudo apt update -y",
-              "sudo apt-add-repository ppa:ansible/ansible -y",
-              "sudo apt update -y",
-              "sudo apt -y install ansible"
-              ]
+      "mkdir /home/${var.ssh_user}/files",
+      "mkdir /home/${var.ssh_user}/ansible",
+    ]
 
     connection {
       type        = "ssh"
-      user        = "${var.ssh_user}"
-      private_key = "${file("${var.private_key_path}")}"
-      host        = "${self.public_ip}"
+      user        = var.ssh_user
+      host        = self.public_ip
+      private_key = file("${var.private_key_path}")
+    }
+  }
+  provisioner "file" {
+    source      = "modules/vpc/ansible/ansible-playbook.yml"
+    destination = "/home/${var.ssh_user}/ansible/ansible-playbook.yml"
+
+    connection {
+      host        = self.public_ip
+      type        = "ssh"
+      user        = var.ssh_user
+      private_key = file("${var.private_key_path}")
     }
   }
 
-  provisioner "local-exec" {
+  provisioner "remote-exec" {
+    inline = [
+	"sudo apt update -y",
+              "sudo apt-add-repository ppa:ansible/ansible -y",
+              "sudo apt update -y",
+              "sudo apt -y install ansible",
+      "cd ansible; ansible-playbook -c local -i \"localhost,\" ansible-playbook.yml",
+    ]
 
-	command = "sleep 90; ANSIBLE_HOST_KEY_CHECKING=False ansible-playbook -u ubuntu -i ${self.public_ip} --private-key ${var.private_key_path} modules/vpc/ansible/ansible-playbook.yml"
-}
+    connection {
+      host        = self.public_ip
+      type        = "ssh"
+      user        = var.ssh_user
+      private_key = file("${var.private_key_path}")
+    }
+  }
+
+
+
 
 }
 
@@ -182,7 +139,7 @@ resource "aws_ebs_volume" "example_volume" {
   availability_zone = "eu-central-1a"
   size              = 50
   type              = "gp2"
-  
+
   tags = {
     Name = "example_volume"
   }
@@ -190,9 +147,10 @@ resource "aws_ebs_volume" "example_volume" {
 }
 
 resource "aws_volume_attachment" "example_volume_attachment" {
-  device_name = "/dev/xvdb"   
+  device_name = "/dev/xvdb"
   volume_id   = aws_ebs_volume.example_volume.id
   instance_id = aws_instance.example_instance.id
 
 }
+
 

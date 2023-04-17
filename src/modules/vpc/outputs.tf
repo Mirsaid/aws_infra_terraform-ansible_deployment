@@ -13,8 +13,8 @@ output "security_group_id" {
   value       = aws_security_group.ingress.id
 }
 
-  # output "public_ip" {
-  # description = "The public IP"
-  # value       = aws_instance.example_public_ip.public_ip
-  # }
+# output "public_ip" {
+# description = "The public IP"
+# value       = aws_instance.example_public_ip.public_ip
+# }
 
